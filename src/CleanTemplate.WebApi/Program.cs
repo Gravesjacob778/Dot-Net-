@@ -3,8 +3,11 @@ using CleanTemplate.Application;
 using CleanTemplate.Application.Common.Options;
 using CleanTemplate.Infrastructure;
 using CleanTemplate.Infrastructure.Persistence;
+using CleanTemplate.WebApi.Filters;
 using CleanTemplate.WebApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +20,21 @@ builder.Services.AddOptions<JwtOptions>()
     .Validate(options => !string.IsNullOrWhiteSpace(options.Key), "Jwt:Key is required.")
     .ValidateOnStart();
 
-builder.Services.AddControllers();
+builder.Services.AddScoped<ApiActionLoggingFilter>();
+builder.Services.AddScoped<ApiModelValidationFilter>();
+builder.Services.AddScoped<ApiResultFilter>();
+
+builder.Services.AddControllers(options =>
+{
+    options.Filters.AddService<ApiActionLoggingFilter>();
+    options.Filters.AddService<ApiModelValidationFilter>();
+    options.Filters.AddService<ApiResultFilter>();
+    options.Filters.Add(new AuthorizeFilter());
+});
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
+});
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("Jwt settings are missing.");

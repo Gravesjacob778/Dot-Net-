@@ -6,7 +6,7 @@ using CleanTemplate.Application.Common.Models;
 
 namespace CleanTemplate.WebApi.Middleware;
 
-public sealed class ResponseWrappingMiddleware
+public sealed class ResponseWrappingMiddleware(RequestDelegate next, ILogger<ResponseWrappingMiddleware> logger)
 {
     private const string DefaultErrorMessage = "An unexpected error occurred.";
     private static readonly JsonSerializerOptions SerializerOptions = new()
@@ -14,14 +14,8 @@ public sealed class ResponseWrappingMiddleware
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ResponseWrappingMiddleware> _logger;
-
-    public ResponseWrappingMiddleware(RequestDelegate next, ILogger<ResponseWrappingMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
+    private readonly RequestDelegate _next = next;
+    private readonly ILogger<ResponseWrappingMiddleware> _logger = logger;
 
     public async Task InvokeAsync(HttpContext context)
     {
