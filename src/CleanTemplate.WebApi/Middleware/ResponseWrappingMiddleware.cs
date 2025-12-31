@@ -72,7 +72,7 @@ public sealed class ResponseWrappingMiddleware
         await WriteWrappedAsync(context, originalBody, HttpActionResponse.Fail(DefaultErrorMessage));
     }
 
-    private static async Task HandleResponseAsync(HttpContext context, Stream originalBody, MemoryStream buffer)
+    private async Task HandleResponseAsync(HttpContext context, Stream originalBody, MemoryStream buffer)
     {
         context.Response.Body = originalBody;
 
